@@ -1,0 +1,12 @@
+# One-click deploy on Render (free plan): Dashboard > New > Blueprint > pick this repo.
+services:
+  - type: web
+    runtime: python
+    name: ai-panchayat
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
+    healthCheckPath: /healthz
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
