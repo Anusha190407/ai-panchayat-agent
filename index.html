@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Panchayat – {{ panchayat }}</title>
+  <meta name="description" content="Agentic AI grievance redressal for village panchayats: Tamil/English complaints, duplicate merging, priority triage, SLA escalation and development insights.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Tamil:wdth,wght@75..125,300..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%235B3F9E' stroke-width='3'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='16' cy='10' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='22' cy='10' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='10' cy='16' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='22' cy='16' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='10' cy='22' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='16' cy='22' r='2' fill='%231E5B3C'/%3E%3Ccircle cx='22' cy='22' r='2' fill='%231E5B3C'/%3E%3C/svg%3E">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="board">
+  <div class="board-inner">
+    <div class="brand">
+      <svg class="emblem" viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M14 14 Q24 4 34 14 Q44 24 34 34 Q24 44 14 34 Q4 24 14 14Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <g fill="currentColor">
+          <circle cx="16" cy="16" r="2.2"/><circle cx="24" cy="16" r="2.2"/><circle cx="32" cy="16" r="2.2"/>
+          <circle cx="16" cy="24" r="2.2"/><circle cx="24" cy="24" r="2.2"/><circle cx="32" cy="24" r="2.2"/>
+          <circle cx="16" cy="32" r="2.2"/><circle cx="24" cy="32" r="2.2"/><circle cx="32" cy="32" r="2.2"/>
+        </g>
+      </svg>
+      <div>
+        <p class="brand-name">AI Panchayat <span lang="ta">AI பஞ்சாயத்து</span></p>
+        <p class="brand-place"><span lang="ta">{{ panchayat_ta }}</span>, {{ panchayat }}</p>
+      </div>
+    </div>
+    <div class="board-status">
+      <span id="engine-pill" class="pill pill-muted" title="Which AI engine the agents are using">Checking AI engine…</span>
+      <span id="clock-pill" class="pill pill-muted" hidden></span>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Sections">
+    <a href="#report" data-tab="report" class="tab">Report a problem</a>
+    <a href="#desk" data-tab="desk" class="tab">Officer desk</a>
+    <a href="#escalations" data-tab="escalations" class="tab">Escalations</a>
+    <a href="#insights" data-tab="insights" class="tab">Development insights</a>
+    <a href="#tests" data-tab="tests" class="tab">Test lab</a>
+    <a href="#how" data-tab="how" class="tab">How it works</a>
+  </nav>
+</header>
+
+<main id="main">
+  <div id="engine-banner" class="banner" hidden></div>
+
+  <!-- ============================================================ REPORT -->
+  <section id="tab-report" class="tab-panel" data-panel="report">
+    <div class="report-grid">
+      <div class="report-left">
+        <h1 class="display">Tell us the problem.<span lang="ta" class="display-ta">உங்கள் பிரச்சனையைச் சொல்லுங்கள்.</span></h1>
+        <p class="lede">Write or speak in Tamil, English or Tanglish. A team of AI agents reads it, checks for duplicates, sets the priority, picks the right officer and keeps chasing it until it is fixed.</p>
+
+        <div id="thread" class="thread" aria-live="polite"></div>
+
+        <form id="composer" class="composer" autocomplete="off">
+          <div id="followup-banner" class="followup" hidden>
+            <span>Answering the agent's question about: <q id="followup-text"></q></span>
+            <button type="button" id="followup-cancel" class="link-btn">Start a new complaint</button>
+          </div>
+          <label for="complaint" class="sr-only">Describe the problem</label>
+          <textarea id="complaint" rows="3" maxlength="2000"
+            placeholder="e.g. Drain overflowing on Kamarajar Street since Monday / காமராஜர் தெருவில் சாக்கடை நிரம்பி ஓடுகிறது"></textarea>
+          <div id="photo-chip" class="photo-chip" hidden>
+            <img id="photo-preview" alt="Attached photo preview">
+            <span>Photo attached</span>
+            <button type="button" id="photo-remove" class="icon-btn" aria-label="Remove photo">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <details class="more">
+            <summary>Add your name, phone or ward (optional)</summary>
+            <div class="more-grid">
+              <label>Name <input id="c-name" maxlength="60" placeholder="Selvi"></label>
+              <label>Phone <input id="c-phone" maxlength="15" inputmode="tel" placeholder="98xxxxxxxx"></label>
+              <label>Ward
+                <select id="c-ward"><option value="">Not sure</option></select>
+              </label>
+            </div>
+          </details>
+          <div class="composer-bar">
+            <div class="tools">
+              <button type="button" id="mic-btn" class="tool-btn" aria-pressed="false" title="Speak your complaint">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5 10.5a7 7 0 0 0 14 0M12 17.5V21.5"/></svg>
+                <span id="mic-label">Speak</span>
+              </button>
+              <select id="mic-lang" class="mini-select" aria-label="Voice language">
+                <option value="ta-IN">தமிழ்</option>
+                <option value="en-IN">English</option>
+              </select>
+              <label class="tool-btn" title="Attach a photo">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h3.5l2-3h6l2 3h3.5v11.5h-17z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+                <span>Photo</span>
+                <input id="photo-input" type="file" accept="image/*" capture="environment" class="sr-only">
+              </label>
+            </div>
+            <button type="submit" id="send-btn" class="btn btn-primary">Send complaint</button>
+          </div>
+          <p id="composer-error" class="form-error" role="alert" hidden></p>
+        </form>
+
+        <div class="samples">
+          <p class="samples-label">Try an example</p>
+          <div id="sample-chips" class="chips"></div>
+        </div>
+      </div>
+
+      <aside class="register" aria-label="What the agents did">
+        <div class="register-head">
+          <h2>What the agents did</h2>
+          <p id="register-meta" class="register-meta">Each step appears here as it happens.</p>
+        </div>
+        <ol id="register-steps" class="register-steps">
+          <li class="register-empty">Send a complaint and every agent's decision is written here, line by line.</li>
+        </ol>
+        <div id="stamp-slot"></div>
+        <div id="messages-slot"></div>
+      </aside>
+    </div>
+
+    <section class="track" aria-labelledby="track-h">
+      <h2 id="track-h">Track a complaint</h2>
+      <form id="track-form" class="track-form">
+        <label for="track-id" class="sr-only">Ticket number</label>
+        <input id="track-id" placeholder="Ticket number, e.g. AP-1002" maxlength="12">
+        <button class="btn" type="submit">Show status</button>
+      </form>
+      <div id="track-result"></div>
+    </section>
+  </section>
+
+  <!-- ============================================================== DESK -->
+  <section id="tab-desk" class="tab-panel" data-panel="desk" hidden>
+    <div class="panel-head">
+      <div>
+        <h1 class="h1">Officer desk</h1>
+        <p class="lede">Every complaint, sorted by priority and deadline. Open one to update it; citizens get an SMS automatically.</p>
+      </div>
+      <button id="reset-demo" class="btn btn-quiet" type="button">Reset demo data</button>
+    </div>
+    <dl id="desk-stats" class="stats"></dl>
+    <form id="desk-filters" class="filters">
+      <label>Status
+        <select name="status">
+          <option value="OPEN_ANY">Open (all)</option><option value="">Everything</option>
+          <option value="OPEN">Open</option><option value="IN_PROGRESS">In progress</option>
+          <option value="ESCALATED">Escalated</option><option value="RESOLVED">Resolved</option>
+        </select>
+      </label>
+      <label>Ward <select name="ward"><option value="">All wards</option></select></label>
+      <label>Problem type <select name="category"><option value="">All types</option></select></label>
+      <label>Priority
+        <select name="priority"><option value="">All</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select>
+      </label>
+      <label class="grow">Search <input name="q" type="search" placeholder="Ticket, street or words"></label>
+    </form>
+    <div class="table-wrap">
+      <table class="ledger">
+        <thead><tr><th>Ticket</th><th>Problem</th><th>Ward</th><th>Priority</th><th>Citizens</th><th>Officer</th><th>Deadline</th><th>Status</th></tr></thead>
+        <tbody id="desk-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ======================================================= ESCALATIONS -->
+  <section id="tab-escalations" class="tab-panel" data-panel="escalations" hidden>
+    <div class="panel-head">
+      <div>
+        <h1 class="h1">Escalations</h1>
+        <p class="lede">The Escalation Agent checks every deadline. Late complaints go up the chain: Panchayat Secretary, then President, then the Block Development Officer. Move the demo clock forward to watch it act.</p>
+      </div>
+    </div>
+    <div class="clock-card">
+      <div>
+        <p class="clock-label">Demo clock</p>
+        <p id="clock-now" class="clock-now">…</p>
+        <p id="clock-offset" class="clock-offset"></p>
+      </div>
+      <div class="clock-actions">
+        <button class="btn" data-advance="12" type="button">Forward 12 hours</button>
+        <button class="btn" data-advance="24" type="button">Forward 1 day</button>
+        <button class="btn" data-advance="72" type="button">Forward 3 days</button>
+        <button class="btn btn-quiet" id="clock-reset" type="button">Back to real time</button>
+      </div>
+      <button id="sweep-btn" class="btn btn-primary" type="button">Run escalation check</button>
+    </div>
+    <div id="sweep-result"></div>
+    <h2 class="h2">Escalation log</h2>
+    <ul id="esc-log" class="log"></ul>
+  </section>
+
+  <!-- ========================================================== INSIGHTS -->
+  <section id="tab-insights" class="tab-panel" data-panel="insights" hidden>
+    <div class="panel-head">
+      <div>
+        <h1 class="h1">Development insights</h1>
+        <p class="lede">Complaints show where the village needs permanent fixes. The Insights Agent turns the pattern into a brief for the next Gram Sabha.</p>
+      </div>
+      <button id="brief-btn" class="btn btn-primary" type="button">Write Gram Sabha brief</button>
+    </div>
+    <div id="brief-slot"></div>
+    <dl id="insight-stats" class="stats"></dl>
+    <div class="charts">
+      <figure class="chart"><figcaption>Citizens affected, by problem type</figcaption><div id="chart-cat"></div></figure>
+      <figure class="chart"><figcaption>Citizens affected, by ward</figcaption><div id="chart-ward"></div></figure>
+    </div>
+    <figure class="chart wide"><figcaption>Where each problem keeps coming back (citizen reports per ward)</figcaption><div id="heatmap" class="table-wrap"></div></figure>
+    <figure class="chart wide"><figcaption>Hotspot streets</figcaption><div id="hotspots"></div></figure>
+  </section>
+
+  <!-- ============================================================= TESTS -->
+  <section id="tab-tests" class="tab-panel" data-panel="tests" hidden>
+    <div class="panel-head">
+      <div>
+        <h1 class="h1">Test lab</h1>
+        <p class="lede">Eleven real scenarios run through the live agents on a fresh copy of the demo data, so your actions never affect them. Each one checks the agents' decisions against what a panchayat officer would expect.</p>
+      </div>
+      <div class="test-controls">
+        <label>Engine
+          <select id="test-mode">
+            <option value="auto">Gemini (falls back if unavailable)</option>
+            <option value="offline">Offline engine only</option>
+          </select>
+        </label>
+        <button id="run-tests" class="btn btn-primary" type="button">Run all tests</button>
+      </div>
+    </div>
+    <p id="test-summary" class="test-summary"></p>
+    <div class="table-wrap">
+      <table class="ledger tests">
+        <thead><tr><th>Test</th><th>Scenario</th><th>Result</th><th>Agent outcome</th><th>Engine</th><th>Time</th></tr></thead>
+        <tbody id="test-rows"></tbody>
+      </table>
+    </div>
+    <button id="download-tests" class="btn btn-quiet" type="button" hidden>Download results (JSON)</button>
+  </section>
+
+  <!-- =============================================================== HOW -->
+  <section id="tab-how" class="tab-panel" data-panel="how" hidden>
+    <h1 class="h1">How the agents work together</h1>
+    <p class="lede">A complaint moves through a state graph. Each agent reads the shared case file, decides, and hands over to the next one. Routers choose the path, so a vague message, a repeat report and an emergency each take a different route.</p>
+    <div class="flow" aria-label="Agent workflow diagram">
+      <div class="flow-col">
+        <div class="node node-input">Citizen message<small>Tamil, English, Tanglish, voice or photo</small></div>
+        <div class="arrow" aria-hidden="true"></div>
+        <div class="node node-agent">Intake Agent<small>Category, place, ward, urgency, language</small></div>
+      </div>
+      <div class="flow-branches">
+        <div class="branch"><span class="branch-label">place missing</span><div class="node node-tool">Asks one follow-up question</div></div>
+        <div class="branch"><span class="branch-label">not a grievance</span><div class="node node-tool">Polite reply, nothing registered</div></div>
+        <div class="branch"><span class="branch-label">pension or certificate</span><div class="node node-tool">Straight to triage (never merged)</div></div>
+        <div class="branch main"><span class="branch-label">village problem</span>
+          <div class="node node-tool">Duplicate search<small>Same ward, street match + text similarity</small></div>
+          <div class="arrow" aria-hidden="true"></div>
+          <div class="node node-agent">Duplicate Agent<small>Same physical problem?</small></div>
+          <div class="split">
+            <div><span class="branch-label">yes</span><div class="node node-tool">Merge, count citizens, raise priority</div></div>
+            <div><span class="branch-label">no</span><div class="node node-agent">Triage &amp; Routing Agent<small>Priority + SLA, officer, safety guardrail</small></div><div class="arrow" aria-hidden="true"></div><div class="node node-tool">Create ticket</div></div>
+          </div>
+          <div class="arrow" aria-hidden="true"></div>
+          <div class="node node-agent">Notification Agent<small>Bilingual SMS + officer work order</small></div>
+        </div>
+      </div>
+      <div class="flow-side">
+        <div class="node node-agent">Escalation Agent<small>Watches every deadline; reminds, then escalates up the chain</small></div>
+        <div class="node node-agent">Insights Agent<small>Turns patterns into a Gram Sabha development brief</small></div>
+      </div>
+    </div>
+    <div class="how-grid">
+      <div>
+        <h2 class="h2">Built to be trusted</h2>
+        <ul class="plain">
+          <li><strong>Safety guardrail.</strong> Hazard rules (live wire, sewage in drinking water, open manhole) set a minimum priority the AI cannot lower.</li>
+          <li><strong>Never stuck.</strong> If Gemini is slow, rate-limited or returns bad output, that step falls back to the offline engine and the trace says so.</li>
+          <li><strong>Full audit trail.</strong> Every decision is logged on the ticket with the agent's name and reason.</li>
+          <li><strong>Privacy.</strong> Phone numbers are masked; photos are analysed, not stored.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="h2">Built with</h2>
+        <ul class="plain">
+          <li>Google Gemini API (Flash-Lite / Flash) with structured JSON output and photo understanding</li>
+          <li>Python state-graph orchestrator with routers, tools and live streaming</li>
+          <li>Flask, SQLite, browser speech recognition for Tamil and English voice</li>
+          <li>Offline rule engine for Tamil, English and Tanglish as fallback and guardrail</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="drawer" class="drawer" hidden>
+  <div class="drawer-backdrop" data-close></div>
+  <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <button class="icon-btn drawer-close" data-close aria-label="Close">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div id="drawer-body"></div>
+  </aside>
+</div>
+
+<footer class="foot">
+  <p>AI Panchayat is a hackathon prototype. Names, streets and complaints shown are fictional demo data. SMS and WhatsApp messages are simulated.</p>
+</footer>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
